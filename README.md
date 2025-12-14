@@ -6,12 +6,6 @@ GitGrade is a recruiter-focused web app that analyzes any public GitHub reposito
 
 ---
 
-## Live Demo
-- App: 
-- Demo video: 
-
----
-
 ## What it does
 Paste a public GitHub repository URL and GitGrade will automatically:
 - Fetch repository metadata, file tree, README (if present), languages, and commit activity (public data).
