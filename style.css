@@ -1,3 +1,6 @@
+/* Ensure the HTML hidden attribute always hides elements */
+[hidden] { display: none !important; }
+
 /* =========================
    GitGrade — styles.css
    ========================= */
@@ -724,4 +727,152 @@ button,input{ font: inherit; }
   background: rgba(239,68,68,0.10);
   border: 1px solid rgba(239,68,68,0.35);
   border-radius: 18px;
+}
+
+/* =========================
+   GitGrade — CSS PATCH (append)
+   ========================= */
+
+/* More space between hero and report (your “blue line” gap issue) */
+.section-gap{
+  height: clamp(18px, 2.5vw, 32px);
+}
+
+/* Sticky report navigation bar */
+.reportnav{
+  position: sticky;
+  top: 78px; /* below sticky header */
+  z-index: 40;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px;
+  margin: 10px 0 var(--gap);
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(10,14,25,0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.reportnav__item{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 999px;
+  text-decoration: none;
+  color: rgba(255,255,255,0.82);
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.04);
+  transition: transform .18s var(--ease), border-color .18s var(--ease), background .18s var(--ease);
+}
+.reportnav__item:hover{
+  transform: translateY(-2px);
+  border-color: rgba(56,189,248,0.32);
+  background: rgba(56,189,248,0.10);
+}
+
+/* Executive Summary: key-value list */
+.kv{
+  margin-top: 10px;
+  display: grid;
+  gap: 10px;
+}
+.kv__row{
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.18);
+}
+.kv__k{
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.65);
+}
+.kv__v{
+  color: rgba(255,255,255,0.86);
+  line-height: 1.55;
+}
+
+/* Recruiter Signals: compact signal grid */
+.siggrid{
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.sig{
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.18);
+}
+.sig__k{
+  display:block;
+  font-size: 12px;
+  color: rgba(255,255,255,0.62);
+}
+.sig__v{
+  display:block;
+  margin-top: 6px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.90);
+}
+
+/* Reveal-on-scroll animation primitives */
+[data-reveal]{
+  opacity: 0;
+  transform: translateY(10px);
+  filter: blur(6px);
+  transition: opacity .65s var(--ease), transform .65s var(--ease), filter .65s var(--ease);
+  will-change: opacity, transform, filter;
+}
+[data-reveal].is-in{
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+/* Custom cursor dot */
+.cursor-dot{
+  position: fixed;
+  left: 0; top: 0;
+  width: 10px; height: 10px;
+  border-radius: 999px;
+  background: #fff;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: difference; /* auto-invert on light backgrounds */
+  opacity: 0;
+  transition: opacity .18s var(--ease), width .18s var(--ease), height .18s var(--ease);
+} /* [web:340][web:343] */
+
+body:hover .cursor-dot{ opacity: 1; }
+
+.cursor-dot.is-click{
+  width: 16px; height: 16px;
+  opacity: 0.9;
+}
+
+/* Small-screen tweaks for the new structures */
+@media (max-width: 860px){
+  .reportnav{ top: 70px; }
+  .kv__row{ grid-template-columns: 1fr; }
+  .siggrid{ grid-template-columns: 1fr; }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+  [data-reveal]{
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+  .cursor-dot{ display:none !important; }
 }
