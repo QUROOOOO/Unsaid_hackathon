@@ -7,8 +7,8 @@ GitGrade is a recruiter-focused web app that analyzes any public GitHub reposito
 ---
 
 ## Live Demo
-- App: <YOUR_VERCEL_URL>
-- Demo video: <YOUR_SCREEN_RECORDING_URL>
+- App: 
+- Demo video: 
 
 ---
 
