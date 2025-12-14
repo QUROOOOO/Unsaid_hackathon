@@ -1,379 +1,280 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <!-- Basic -->
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="color-scheme" content="dark light" />
-  <title>GitGrade — Recruiter-Grade GitHub Repository Analyzer</title>
-  <meta name="description" content="Analyze any public GitHub repository: score, visual dashboards, detailed feedback, and a personalized improvement roadmap." />
-  <meta name="robots" content="index,follow" />
+  <title>GitGrade — Recruiter-Grade GitHub Repo Analyzer</title>
+  <meta name="description" content="Score, visuals, detailed report, and roadmap for any public GitHub repository." />
 
-  <!-- Open Graph -->
-  <meta property="og:title" content="GitGrade — Recruiter-Grade GitHub Repository Analyzer" />
-  <meta property="og:description" content="Score + charts + detailed report + roadmap for any public GitHub repo." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="" />
-  <meta property="og:image" content="./assets/preview.png" />
+  <link rel="stylesheet" href="./styles.css" />
 
-  <!-- Twitter -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="GitGrade — Recruiter-Grade GitHub Repository Analyzer" />
-  <meta name="twitter:description" content="Score + charts + detailed report + roadmap for any public GitHub repo." />
-  <meta name="twitter:image" content="./assets/preview.png" />
-
-  <!-- Favicons (optional) -->
-  <link rel="icon" href="./assets/favicon.ico" />
-  <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
-
-  <!-- Styles -->
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-  <link rel="stylesheet" href="styles.css" />
-
-  <!-- Chart.js (CDN) -->
+  <!-- Chart.js (UMD build) -->
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
-  <!-- App Script -->
-  <script defer src="./app.js"></script>
+  <!-- Matrix plugin (heatmap) - with fallback if CDN fails -->
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@3.0.0/dist/chartjs-chart-matrix.umd.min.js"
+    onerror="this.onerror=null;this.src='https://unpkg.com/chartjs-chart-matrix@3.0.0/dist/chartjs-chart-matrix.umd.min.js';">
+  </script>
 
-  <!-- Minimal “no-flash” theme hint (CSS also controls the look) -->
-  <meta name="theme-color" content="#0b1020" />
+  <!-- App -->
+  <script defer src="./index.js"></script>
 </head>
 
 <body>
-  <a class="skip-link" href="#main">Skip to main content</a>
+  <!-- Custom cursor dot (JS will drive it) -->
+  <div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
 
-  <div class="app-shell">
-    <!-- Top bar -->
-    <header class="topbar" role="banner">
-      <div class="topbar__inner container">
-        <div class="brand" aria-label="GitGrade">
-          <div class="brand__mark" aria-hidden="true">GG</div>
-          <div class="brand__text">
-            <div class="brand__name">GitGrade</div>
-            <div class="brand__tagline">Recruiter-grade repo analysis</div>
-          </div>
-        </div>
+  <a class="skip-link" href="#main">Skip to content</a>
 
-        <nav class="topbar__nav" aria-label="Primary navigation">
-          <a class="navlink" href="#how">How it works</a>
-          <a class="navlink" href="#metrics">Metrics</a>
-          <a class="navlink" href="#report">Report</a>
-        </nav>
-
-        <div class="topbar__actions">
-          <button class="btn btn--ghost" id="demoBtn" type="button">
-            Load demo
-          </button>
-          <button class="btn btn--soft" id="copyLinkBtn" type="button">
-            Copy share link
-          </button>
+  <header class="topbar">
+    <div class="container topbar__inner">
+      <div class="brand" data-reveal>
+        <div class="brand__mark" aria-hidden="true">GG</div>
+        <div class="brand__text">
+          <div class="brand__name">GitGrade</div>
+          <div class="brand__tagline">Recruiter-grade repo analysis</div>
         </div>
       </div>
-    </header>
 
-    <main id="main" class="container" role="main">
-      <!-- Hero / Input -->
-      <section class="hero" aria-labelledby="heroTitle">
-        <div class="hero__grid">
-          <div class="hero__left">
-            <h1 id="heroTitle" class="hero__title">
-              Analyze a GitHub repository like a recruiter.
-            </h1>
+      <div class="topbar__actions" data-reveal>
+        <button class="btn btn--ghost" id="demoBtn" type="button">Load demo</button>
+        <button class="btn btn--soft" id="copyLinkBtn" type="button">Copy share link</button>
+      </div>
+    </div>
+  </header>
 
-            <p class="hero__subtitle">
-              Paste a public GitHub repository URL to generate a score, a visual dashboard, a detailed review, and a prioritized roadmap.
+  <main id="main" class="container">
+    <!-- HERO: input + score card -->
+    <section class="hero">
+      <div class="hero__grid">
+        <div class="hero__left" data-reveal>
+          <h1 class="hero__title">Analyze a GitHub repository like a recruiter.</h1>
+          <p class="hero__subtitle">
+            Paste a public GitHub repo URL to generate a score, high-signal dashboards, a detailed review, and a prioritized roadmap.
+          </p>
+
+          <form class="repo-form" id="repoForm" autocomplete="off">
+            <label class="sr-only" for="repoUrl">GitHub repository URL</label>
+
+            <div class="repo-form__field">
+              <span class="repo-form__icon" aria-hidden="true">🔗</span>
+              <input id="repoUrl" name="repoUrl" type="url" inputmode="url"
+                     placeholder="https://github.com/owner/repo" required />
+            </div>
+
+            <div class="repo-form__actions">
+              <button class="btn btn--primary" id="analyzeBtn" type="submit">Analyze</button>
+              <button class="btn btn--ghost" id="resetBtn" type="button">Reset</button>
+            </div>
+
+            <p class="repo-form__hint">
+              Public repositories only. (Tip: Paste the main repo URL, not /blob or /commit links.)
             </p>
+          </form>
 
-            <form class="repo-form" id="repoForm" autocomplete="off">
-              <label class="sr-only" for="repoUrl">GitHub repository URL</label>
+          <div class="status" id="statusBox" role="status" aria-live="polite" aria-atomic="true"></div>
 
-              <div class="repo-form__field" role="group" aria-label="Repository URL input">
-                <span class="repo-form__icon" aria-hidden="true">🔗</span>
-                <input
-                  id="repoUrl"
-                  name="repoUrl"
-                  type="url"
-                  inputmode="url"
-                  placeholder="https://github.com/owner/repo"
-                  aria-describedby="repoHelp"
-                  required
-                />
-              </div>
-
-              <div class="repo-form__actions">
-                <button class="btn btn--primary" id="analyzeBtn" type="submit">
-                  Analyze
-                </button>
-
-                <button class="btn btn--ghost" id="resetBtn" type="button">
-                  Reset
-                </button>
-              </div>
-
-              <p class="repo-form__hint" id="repoHelp">
-                Public repositories only. If GitHub rate limits occur, wait a bit and retry.
-              </p>
-            </form>
-
-            <!-- Status / Errors -->
-            <div class="status" id="statusBox" role="status" aria-live="polite" aria-atomic="true"></div>
-
-            <!-- Trust chips -->
-            <div class="chips" aria-label="Key outputs">
-              <span class="chip">Score (0–100)</span>
-              <span class="chip">Visual dashboard</span>
-              <span class="chip">Detailed analysis</span>
-              <span class="chip">Personalized roadmap</span>
-            </div>
-          </div>
-
-          <aside class="hero__right" aria-label="At-a-glance preview">
-            <div class="glasscard">
-              <div class="glasscard__top">
-                <div>
-                  <div class="label">Overall Score</div>
-                  <div class="scoreline">
-                    <span class="scoreline__num" id="overallScore">--</span>
-                    <span class="scoreline__den">/100</span>
-                  </div>
-                  <div class="muted" id="gradeLabel">Grade: --</div>
-                </div>
-
-                <div class="donutwrap" aria-label="Overall score chart">
-                  <canvas id="scoreChart"></canvas>
-                </div>
-              </div>
-
-              <div class="kpi-grid" aria-label="Quick stats">
-                <div class="kpi">
-                  <div class="kpi__value" id="kpiFiles">--</div>
-                  <div class="kpi__label">Files</div>
-                </div>
-                <div class="kpi">
-                  <div class="kpi__value" id="kpiFolders">--</div>
-                  <div class="kpi__label">Folders</div>
-                </div>
-                <div class="kpi">
-                  <div class="kpi__value" id="kpiCommits">--</div>
-                  <div class="kpi__label">Recent commits</div>
-                </div>
-                <div class="kpi">
-                  <div class="kpi__value" id="kpiPrimaryLang">--</div>
-                  <div class="kpi__label">Primary language</div>
-                </div>
-              </div>
-
-              <div class="legend" aria-label="Legend">
-                <span class="legend__item"><span class="dot dot--good" aria-hidden="true"></span>Strong</span>
-                <span class="legend__item"><span class="dot dot--warn" aria-hidden="true"></span>Needs work</span>
-                <span class="legend__item"><span class="dot dot--bad" aria-hidden="true"></span>Risk</span>
-              </div>
-            </div>
-          </aside>
-        </div>
-      </section>
-
-      <!-- How it works -->
-      <section id="how" class="section" aria-labelledby="howTitle">
-        <div class="section__head">
-          <h2 id="howTitle" class="section__title">How it works</h2>
-          <p class="section__subtitle">
-            The app fetches public repository signals (structure, docs, commits, languages) and turns them into recruiter-friendly insights.
-          </p>
-        </div>
-
-        <div class="steps" role="list">
-          <div class="step" role="listitem">
-            <div class="step__num" aria-hidden="true">1</div>
-            <div class="step__body">
-              <div class="step__title">Paste a repo URL</div>
-              <div class="step__text">Enter any public GitHub repository link.</div>
-            </div>
-          </div>
-
-          <div class="step" role="listitem">
-            <div class="step__num" aria-hidden="true">2</div>
-            <div class="step__body">
-              <div class="step__title">Fetch repository data</div>
-              <div class="step__text">Metadata, file tree, README, language stats, and recent commit sample.</div>
-            </div>
-          </div>
-
-          <div class="step" role="listitem">
-            <div class="step__num" aria-hidden="true">3</div>
-            <div class="step__body">
-              <div class="step__title">Generate report</div>
-              <div class="step__text">Score + charts + strengths/risks + prioritized roadmap.</div>
-            </div>
+          <div class="chips" data-reveal>
+            <span class="chip">Score (0–100)</span>
+            <span class="chip">Visual dashboards</span>
+            <span class="chip">Recruiter summary</span>
+            <span class="chip">Action roadmap</span>
           </div>
         </div>
-      </section>
 
-      <!-- Metrics -->
-      <section id="metrics" class="section" aria-labelledby="metricsTitle">
-        <div class="section__head">
-          <h2 id="metricsTitle" class="section__title">Metrics recruiters care about</h2>
-          <p class="section__subtitle">
-            Scores are computed across multiple dimensions to reflect real strengths and weaknesses of the repository. 
-          </p>
-        </div>
+        <aside class="hero__right" data-reveal>
+          <div class="glasscard">
+            <div class="glasscard__top">
+              <div>
+                <div class="label">Overall Score</div>
+                <div class="scoreline">
+                  <span class="scoreline__num" id="overallScore">--</span>
+                  <span class="scoreline__den">/100</span>
+                </div>
+                <div class="muted" id="gradeLabel">Grade: --</div>
+              </div>
 
-        <div class="metric-grid">
-          <article class="metric">
-            <h3 class="metric__title">Code quality</h3>
-            <p class="metric__text">Heuristics from file composition, large-file risk, and structural signals.</p>
-          </article>
-
-          <article class="metric">
-            <h3 class="metric__title">Project structure</h3>
-            <p class="metric__text">Signals like src/ separation, config files, clean layout, and conventions.</p>
-          </article>
-
-          <article class="metric">
-            <h3 class="metric__title">Documentation</h3>
-            <p class="metric__text">README presence + key sections like setup, usage, features, and license.</p>
-          </article>
-
-          <article class="metric">
-            <h3 class="metric__title">Tests</h3>
-            <p class="metric__text">Test folder/file detection and CI/test-config indicators.</p>
-          </article>
-
-          <article class="metric">
-            <h3 class="metric__title">Commit consistency</h3>
-            <p class="metric__text">Commit recency and distribution (sample-based, fast and practical).</p>
-          </article>
-
-          <article class="metric">
-            <h3 class="metric__title">Real-world relevance</h3>
-            <p class="metric__text">Signals like recency + basic popularity (stars/forks).</p>
-          </article>
-        </div>
-      </section>
-
-      <!-- Report (hidden until analysis) -->
-      <section id="report" class="section report" aria-labelledby="reportTitle" hidden>
-        <div class="section__head">
-          <h2 id="reportTitle" class="section__title">Repository Report</h2>
-          <p class="section__subtitle">
-            Executive summary first, then drill down into visual evidence and actionable improvements.
-          </p>
-        </div>
-
-        <!-- Executive summary + recruiter signals -->
-        <div class="report__top">
-          <article class="card">
-            <h3 class="card__title">Executive Summary</h3>
-            <p class="card__text muted" id="execSummary">--</p>
-          </article>
-
-          <article class="card">
-            <h3 class="card__title">Recruiter Signals</h3>
-            <p class="card__text muted" id="recruiterSignals">--</p>
-          </article>
-        </div>
-
-        <!-- Charts -->
-        <div class="chart-grid" aria-label="Charts">
-          <article class="chartcard">
-            <div class="chartcard__head">
-              <h3 class="chartcard__title">Dimension Radar</h3>
-              <p class="chartcard__subtitle muted">Six-dimension quality snapshot.</p>
+              <div class="donutwrap">
+                <canvas id="scoreChart" aria-label="Overall score chart" role="img"></canvas>
+              </div>
             </div>
-            <div class="chartcard__body">
-              <canvas id="radarChart" aria-label="Radar chart" role="img"></canvas>
-            </div>
-          </article>
 
-          <article class="chartcard">
-            <div class="chartcard__head">
-              <h3 class="chartcard__title">File Types</h3>
-              <p class="chartcard__subtitle muted">Extension distribution.</p>
+            <div class="kpi-grid">
+              <div class="kpi">
+                <div class="kpi__value" id="kpiFiles">--</div>
+                <div class="kpi__label">Files</div>
+              </div>
+              <div class="kpi">
+                <div class="kpi__value" id="kpiFolders">--</div>
+                <div class="kpi__label">Folders</div>
+              </div>
+              <div class="kpi">
+                <div class="kpi__value" id="kpiCommits">--</div>
+                <div class="kpi__label">Recent commits</div>
+              </div>
+              <div class="kpi">
+                <div class="kpi__value" id="kpiPrimaryLang">--</div>
+                <div class="kpi__label">Primary language</div>
+              </div>
             </div>
-            <div class="chartcard__body">
-              <canvas id="fileTypeChart" aria-label="File types chart" role="img"></canvas>
-            </div>
-          </article>
 
-          <article class="chartcard">
-            <div class="chartcard__head">
-              <h3 class="chartcard__title">Commit Consistency</h3>
-              <p class="chartcard__subtitle muted">Recent commit activity trend (sample).</p>
-            </div>
-            <div class="chartcard__body">
-              <canvas id="commitChart" aria-label="Commit consistency chart" role="img"></canvas>
-            </div>
-          </article>
-
-          <article class="chartcard">
-            <div class="chartcard__head">
-              <h3 class="chartcard__title">Score Breakdown</h3>
-              <p class="chartcard__subtitle muted">Dimension contributions.</p>
-            </div>
-            <div class="chartcard__body">
-              <canvas id="breakdownChart" aria-label="Score breakdown chart" role="img"></canvas>
-            </div>
-          </article>
-        </div>
-
-        <!-- Detailed analysis + roadmap -->
-        <div class="report__cols">
-          <article class="card">
-            <h3 class="card__title">Detailed Analysis</h3>
-            <ul class="bullets" id="detailedAnalysis">
-              <li>--</li>
-            </ul>
-          </article>
-
-          <article class="card">
-            <h3 class="card__title">Personalized Roadmap</h3>
-            <ul class="bullets" id="roadmap">
-              <li>--</li>
-            </ul>
-          </article>
-        </div>
-      </section>
-
-      <!-- Loading overlay -->
-      <div class="overlay" id="loadingOverlay" aria-hidden="true" hidden>
-        <div class="overlay__card" role="alert" aria-live="assertive" aria-atomic="true">
-          <div class="spinner" aria-hidden="true"></div>
-          <div>
-            <div class="overlay__title">Analyzing repository…</div>
-            <div class="overlay__text muted" id="loadingText">
-              Fetching GitHub data and generating the report.
+            <div class="legend">
+              <span class="legend__item"><span class="dot dot--good" aria-hidden="true"></span>Strong</span>
+              <span class="legend__item"><span class="dot dot--warn" aria-hidden="true"></span>Needs work</span>
+              <span class="legend__item"><span class="dot dot--bad" aria-hidden="true"></span>Risk</span>
             </div>
           </div>
-        </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- Add a bit more breathing room before the report -->
+    <div class="section-gap" aria-hidden="true"></div>
+
+    <!-- REPORT (always visible) -->
+    <section id="report" class="report">
+      <div class="report__header" data-reveal>
+        <h2 class="report__title">Repository Report</h2>
+        <p class="report__subtitle muted">Make a decision quickly from visuals, then validate with detail.</p>
       </div>
 
-      <noscript>
-        <div class="noscript">
-          This app needs JavaScript enabled to fetch GitHub data and render charts.
-        </div>
-      </noscript>
-    </main>
+      <!-- Sticky in-page navigation (bar) -->
+      <nav class="reportnav" aria-label="Report navigation" data-reveal>
+        <a class="reportnav__item" href="#r-overview">Overview</a>
+        <a class="reportnav__item" href="#r-dashboards">Dashboards</a>
+        <a class="reportnav__item" href="#r-heatmap">Heatmap</a>
+        <a class="reportnav__item" href="#r-details">Detailed analysis</a>
+        <a class="reportnav__item" href="#r-roadmap">Roadmap</a>
+      </nav>
 
-    <footer class="footer" role="contentinfo">
-      <div class="container footer__inner">
-        <div class="footer__left">
-          <div class="footer__title">GitGrade</div>
-          <div class="footer__text">
-            Built for the GitGrade hackathon: analyze a GitHub repository and generate score + summary + roadmap with visuals. 
+      <!-- Overview -->
+      <div id="r-overview" class="report__top">
+        <article class="card" data-reveal>
+          <h3 class="card__title">Executive Summary</h3>
+          <!-- JS will fill this as categorized bullets -->
+          <div class="kv" id="execSummary">
+            <div class="kv__row"><span class="kv__k">Overall</span><span class="kv__v">--</span></div>
+            <div class="kv__row"><span class="kv__k">Strengths</span><span class="kv__v">--</span></div>
+            <div class="kv__row"><span class="kv__k">Risks</span><span class="kv__v">--</span></div>
           </div>
-        </div>
+        </article>
 
-        <div class="footer__right">
-          <a class="navlink" href="#main">Back to top</a>
-          <a class="navlink" href="https://docs.github.com/en/rest" target="_blank" rel="noreferrer">GitHub API Docs</a>
-          <a class="navlink" href="https://www.chartjs.org/" target="_blank" rel="noreferrer">Chart.js</a>
+        <article class="card" data-reveal>
+          <h3 class="card__title">Recruiter Signals</h3>
+          <!-- JS will fill this as a compact grid -->
+          <div class="siggrid" id="recruiterSignals">
+            <div class="sig"><span class="sig__k">Primary language</span><span class="sig__v">--</span></div>
+            <div class="sig"><span class="sig__k">Files / folders</span><span class="sig__v">--</span></div>
+            <div class="sig"><span class="sig__k">Tests detected</span><span class="sig__v">--</span></div>
+            <div class="sig"><span class="sig__k">Last update</span><span class="sig__v">--</span></div>
+          </div>
+        </article>
+      </div>
+
+      <!-- Dashboards -->
+      <div id="r-dashboards" class="chart-grid">
+        <article class="chartcard" data-reveal>
+          <div class="chartcard__head">
+            <h3 class="chartcard__title">Quality Radar</h3>
+            <p class="chartcard__subtitle muted">Six-dimension snapshot.</p>
+          </div>
+          <div class="chartcard__body chartcard__body--md">
+            <canvas id="radarChart" aria-label="Radar chart" role="img"></canvas>
+          </div>
+        </article>
+
+        <article class="chartcard" data-reveal>
+          <div class="chartcard__head">
+            <h3 class="chartcard__title">Score Breakdown</h3>
+            <p class="chartcard__subtitle muted">Dimension contributions.</p>
+          </div>
+          <div class="chartcard__body chartcard__body--md">
+            <canvas id="breakdownChart" aria-label="Score breakdown chart" role="img"></canvas>
+          </div>
+        </article>
+
+        <article class="chartcard" data-reveal>
+          <div class="chartcard__head">
+            <h3 class="chartcard__title">File Types</h3>
+            <p class="chartcard__subtitle muted">Extension distribution (top).</p>
+          </div>
+          <div class="chartcard__body chartcard__body--sm">
+            <canvas id="fileTypeChart" aria-label="File types chart" role="img"></canvas>
+          </div>
+        </article>
+
+        <article class="chartcard" data-reveal>
+          <div class="chartcard__head">
+            <h3 class="chartcard__title">Commit Trend</h3>
+            <p class="chartcard__subtitle muted">Recent activity (sample).</p>
+          </div>
+          <div class="chartcard__body chartcard__body--sm">
+            <canvas id="commitChart" aria-label="Commit trend chart" role="img"></canvas>
+          </div>
+        </article>
+      </div>
+
+      <!-- Heatmap -->
+      <!-- <div id="r-heatmap" class="chart-grid">
+        <article class="chartcard chartcard--wide" data-reveal>
+          <div class="chartcard__head">
+            <h3 class="chartcard__title">Commit Heatmap</h3>
+            <p class="chartcard__subtitle muted">GitHub-style daily activity (computed from recent commits).</p>
+          </div>
+          <div class="chartcard__body chartcard__body--heat">
+            <canvas id="heatmapChart" aria-label="Commit heatmap" role="img"></canvas>
+          </div>
+        </article>
+      </div> -->
+
+      <!-- Details + Roadmap -->
+      <div class="report__cols">
+        <article class="card" id="r-details" data-reveal>
+          <h3 class="card__title">Detailed Analysis</h3>
+          <ul class="bullets" id="detailedAnalysis">
+            <li>--</li>
+          </ul>
+        </article>
+
+        <article class="card" id="r-roadmap" data-reveal>
+          <h3 class="card__title">Personalized Roadmap</h3>
+          <ul class="bullets" id="roadmap">
+            <li>--</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <!-- Loading overlay -->
+    <div class="overlay" id="loadingOverlay" aria-hidden="true" hidden>
+      <div class="overlay__card" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="spinner" aria-hidden="true"></div>
+        <div>
+          <div class="overlay__title">Analyzing repository…</div>
+          <div class="overlay__text muted" id="loadingText">Fetching GitHub data and generating the report.</div>
         </div>
       </div>
-    </footer>
-  </div>
+    </div>
+
+    <noscript>
+      <div class="noscript">Enable JavaScript to fetch GitHub data and render charts.</div>
+    </noscript>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <div>
+        <div class="footer__title">GitGrade</div>
+        <div class="footer__text">Built for recruiter-style evaluation: visuals first, evidence second.</div>
+      </div>
+      <div class="footer__right">
+        <a class="navlink" href="https://docs.github.com/en/rest" target="_blank" rel="noreferrer">GitHub API</a>
+        <a class="navlink" href="https://www.chartjs.org/" target="_blank" rel="noreferrer">Chart.js</a>
+      </div>
+    </div>
+  </footer>
 </body>
 </html>
-
-
-<!-- QUROOOOO/Unsaid_hackathon/index.html -->
